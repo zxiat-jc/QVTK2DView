@@ -211,8 +211,11 @@ void QTVK2DViewImpl::addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor colo
 
 void QTVK2DViewImpl::refresh()
 {
-    this->_viewer->updatePointCloud(_cloud, POINT_CLOUD);
-    this->renderWindow()->Render();
+    QTimer::singleShot(100, [this]() {
+        this->_viewer->updatePointCloud(_cloud, POINT_CLOUD);
+        this->renderWindow()->Modified();
+        this->renderWindow()->Render();
+    });
 }
 
 void QTVK2DViewImpl::addTriangle(Eigen::Vector2d center, QColor color)
@@ -236,6 +239,7 @@ void QTVK2DViewImpl::addTriangle(Eigen::Vector2d center, QColor color)
     actor->GetProperty()->SetRepresentationToWireframe(); // 设置为线框显示
     this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     this->_vtkActors[ShapeType::Triangle].push_back(actor);
+    this->addFont("triangle", center, "triangle");
     this->renderWindow()->Render();
 }
 
@@ -331,13 +335,12 @@ void QTVK2DViewImpl::loadScene(QString filePath)
     vtkNew<vtkGLTFImporter> importer;
     importer->SetFileName(filePath.toStdString().c_str());
     importer->SetRenderWindow(this->renderWindow());
-    importer->Read();
+    importer->Update();
 }
 
 void QTVK2DViewImpl::clear()
 {
     _cloud->clear();
-    this->_viewer->removePointCloud(POINT_CLOUD);
     for (auto&& type : this->_vtkActors) {
         for (auto&& actor : type) {
             this->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
@@ -345,9 +348,10 @@ void QTVK2DViewImpl::clear()
     }
     for (auto&& id : _fontIds) {
         this->_viewer->removeShape(id.toStdString());
-        this->_fontIds.remove(id.toInt());
     }
+    this->_fontIds.clear();
     this->_vtkActors.clear();
+    this->refresh();
 }
 
 void QTVK2DViewImpl::setCamera()
@@ -389,9 +393,6 @@ void QTVK2DViewImpl::setCamera()
 
     this->_camera->SetPosition(_cloud->points[pointIdxNKNSearch[0]].x, _cloud->points[pointIdxNKNSearch[0]].y, cameraZ);
     this->_camera->SetFocalPoint(_cloud->points[pointIdxNKNSearch[0]].x, _cloud->points[pointIdxNKNSearch[0]].y, _cloud->points[pointIdxNKNSearch[0]].z);
-
-    // 更新视图
-    this->renderWindow()->Render();
 }
 
 vtkSmartPointer<vtkCamera> QTVK2DViewImpl::camera() const

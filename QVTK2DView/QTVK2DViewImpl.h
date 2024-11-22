@@ -41,7 +41,6 @@ public:
     void addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color = { 0, 0, 0 }) override;
 
     void refresh() override;
-    /* void addCircle(QString name, Eigen::Vector2d center, QColor color = { 0, 0, 0 }) override;*/
 
     /**
      * @brief 添加等边三角
@@ -111,7 +110,7 @@ private:
 
     int _fontId = 0;
 
-    constexpr static const int LINE_WIDTH = 3;
+    constexpr static const int LINE_WIDTH = 2;
 
     constexpr static const int CIRCLE_RADIUS = 2;
 
