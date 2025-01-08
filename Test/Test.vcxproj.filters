@@ -23,33 +23,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="qvtk2dview_global.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <QtMoc Include="QVTK2DView.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <ClCompile Include="QVTK2DView.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClInclude Include="dx_data.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dx_iface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="QTVK2DViewImpl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dx_iface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="QTVK2DViewImpl.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
+
   </ItemGroup>
 </Project>

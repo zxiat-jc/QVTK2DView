@@ -21,12 +21,21 @@ class QTVK2DViewImpl : public QVTK2DView {
 
 public:
     enum ShapeType {
+        Circle,
         Oval,
         Triangle,
         Point,
         Line
     };
     Q_ENUM(ShapeType)
+
+    struct Font {
+        QString text = "";
+        double x = 0.0;
+        double y = 0.0;
+        double z = 0.0;
+    };
+
     QTVK2DViewImpl(QWidget* parent);
     ~QTVK2DViewImpl();
 
@@ -36,10 +45,33 @@ public:
      */
     vtkSmartPointer<vtkAxesActor> getBaseAxes() override;
 
-    void addPoint(QString name, Eigen::Vector2d point, QColor color = { 255, 0, 0 }) override;
+    /**
+     * @brief 添加plc点
+     * @param name
+     * @param point
+     * @param color
+     */
+    void addPoint(QString name, Eigen::Vector2d point, QColor color = { 0, 0, 0 }) override;
 
+    /**
+     * @brief 添加vtk点
+     * @param name
+     * @param xy
+     * @param color
+     */
+    void addVtkPoint(QString name, Eigen::Vector2d xy, QColor color = { 0, 0, 0 }) override;
+
+    /**
+     * @brief 添加线
+     * @param p1
+     * @param p2
+     * @param color
+     */
     void addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color = { 0, 0, 0 }) override;
 
+    /**
+     * @brief 刷新
+     */
     void refresh() override;
 
     /**
@@ -65,27 +97,50 @@ public:
     bool exportGLTF(QString path) override;
 
     /**
-     * @brief 添加演员
-     * @param actor
+     * @brief 导出scene为DXF格式
+     * @param path 导出路径
+     * @return
      */
-    void addActor(vtkSmartPointer<vtkActor> actor) override;
+    bool exportDXF(QString path) override;
 
-    /*void addBall(QVector3D center, double radius, QColor color = { 0, 255, 0 });*/
+    /**
+     * @brief 添加椭圆
+     * @param center 中心
+     * @param a 长轴
+     * @param b 短轴
+     * @param a_angle 倾斜角
+     * @param color 颜色
+     */
+    void addOval(Eigen::Vector2d center, double a, double b, double a_angle = 0, QColor color = { 0, 0, 0 }) override;
 
-    void addOval(Eigen::Vector2d center, double a, double b, double a_angle, QColor color = { 0, 0, 0 }) override;
+    /**
+     * @brief
+     * @param center
+     * @param radius
+     * @param color
+     */
+    void addCircle(Eigen::Vector2d center, double radius, QColor color = { 0, 0, 0 }) override;
 
+    /**
+     * @brief 缩放椭圆
+     * @param sacle
+     */
     void amplifyOval(int sacle) override;
 
     /**
-     * @brief 加载场景
-     * @param filePath GLTF路径
+     * @brief 清除画布
      */
-    void loadScene(QString filePath) override;
-
     void clear() override;
 
-    void setCamera() override;
+    /**
+     * @brief 根据点云范围设置相机视角
+     */
+    void setCameraBaseOnCloud() override;
 
+    /**
+     * @brief 获取相机
+     * @return
+     */
     vtkSmartPointer<vtkCamera> camera() const override;
 
 private:
@@ -106,7 +161,7 @@ private:
      */
     QMap<ShapeType, QList<vtkProp3D*>> _vtkActors;
 
-    QList<QString> _fontIds;
+    QMap<QString, Font> _fonts;
 
     int _fontId = 0;
 

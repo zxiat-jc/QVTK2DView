@@ -5,17 +5,13 @@
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Qt5Debug|x64">
-      <Configuration>Qt5Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1D58812F-4A52-4E10-99DB-D5BEF2930D2C}</ProjectGuid>
+    <ProjectGuid>{CD8E8FB7-F252-4905-885E-0069063D4AEE}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
@@ -23,20 +19,17 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Qt5Debug|x64'">
-    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
@@ -44,12 +37,12 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>CURRENT_QT</QtInstall>
-    <QtModules>core;gui;widgets;opengl;openglwidgets</QtModules>
+    <QtModules>core;gui;opengl;openglwidgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>CURRENT_QT</QtInstall>
-    <QtModules>core;gui;widgets;opengl;openglwidgets</QtModules>
+    <QtModules>core</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -67,76 +60,34 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <IncludePath>$(VTK_INCLUDE_DIR);$(PCL_INCLUDE_DIR);$(IncludePath);$(DXFRW)\include\libdxfrw</IncludePath>
-    <LibraryPath>$(VTKDIR)\lib;$(PCLDIR)\lib;$(LibraryPath);$(DXFRW)\lib</LibraryPath>
-    <PublicIncludeDirectories>..\QVTK2DVIEW</PublicIncludeDirectories>
-    <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
-    <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-<<<<<<< Updated upstream
     <IncludePath>$(VTK_INCLUDE_DIR);$(PCL_INCLUDE_DIR);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(VTKDIR)\lib;$(PCLDIR)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
-    <PublicIncludeDirectories>..\QVTK2DView</PublicIncludeDirectories>
-=======
-    <IncludePath>$(VTK_INCLUDE_DIR);$(PCL_INCLUDE_DIR);$(IncludePath);$(DXFRW)\include</IncludePath>
-    <LibraryPath>$(VTKDIR)\lib;$(PCLDIR)\lib;$(LibraryPath);$(DXFRW)\lib</LibraryPath>
->>>>>>> Stashed changes
-    <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
-    <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Qt5Debug|x64'">
-    <IncludePath>$(VTK_INCLUDE_DIR_QT5);$(PCL_INCLUDE_DIR);$(IncludePath);$(DXFRW)\include</IncludePath>
-    <LibraryPath>$(VTKDIR_QT5)\lib;$(PCLDIR)\lib;$(LibraryPath);$(DXFRW)\lib</LibraryPath>
-    <PublicIncludeDirectories>..\QVTK2DVIEW</PublicIncludeDirectories>
-    <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
-    <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
-  </PropertyGroup>
-  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Qt5Debug|x64'">
-    <QtInstall>Q5</QtInstall>
-    <QtModules>core;opengl;gui;widgets;</QtModules>
-    <QtBuildConfig>debug</QtBuildConfig>
-  </PropertyGroup>
-  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Qt5Debug|x64'">
-    <VcpkgConfiguration>Debug</VcpkgConfiguration>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NO_GUI_UTILS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <Link>
-      <AdditionalDependencies>$(VTK_LIB_DEBUG_1);$(VTK_LIB_DEBUG_2);$(PCL_LIB_DEBUG);%(AdditionalDependencies);dxfrw.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Qt5Debug|x64'">
-    <Link>
-      <AdditionalDependencies>$(VTK_QT5_LIB_DEBUG_1);$(PCL_LIB_DEBUG);%(AdditionalDependencies);$(OCCT_LIB);dxfrw.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Link>
-      <AdditionalDependencies>$(VTK_LIB_RELEASE_1);$(VTK_LIB_RELEASE_2);$(PCL_LIB_RELEASE);%(AdditionalDependencies);$(OCCT_LIB);dxfrw.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Link>
-      <AdditionalDependencies>$(VTK_LIB_REALEASE_1);$(VTK_LIB_REALEASE_2);$(PCL_LIB_RELEASE);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(VTK_LIB_DEBUG_1);$(VTK_LIB_DEBUG_2);$(PCL_LIB_DEBUG);%(AdditionalDependencies);$(Qt_LIBS_)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>QVTK2DVIEW_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>QVTK2DVIEW_LIB;NO_GUI_UTILS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
@@ -144,25 +95,27 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <QtMoc Include="QTVK2DViewImpl.h" />
-    <ClInclude Include="dx_data.h" />
-    <ClInclude Include="dx_iface.h" />
-    <ClInclude Include="qvtk2dview_global.h" />
-    <QtMoc Include="QVTK2DView.h" />
-    <ClCompile Include="dx_iface.cpp" />
-    <ClCompile Include="QTVK2DViewImpl.cpp" />
-    <ClCompile Include="QVTK2DView.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\QPluginManager\QPluginInterface\QPluginInterface.vcxproj">
+      <Project>{6109245d-0476-4a22-ba69-b38175e32b29}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QPluginManager\QPluginManager\QPluginManager.vcxproj">
+      <Project>{ea98ef0f-bdfe-47c3-8d37-60203985daf9}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\QUtils\QUtils\QUtils.vcxproj">
       <Project>{4d71bf2e-541a-4e75-a15b-960a03d242a1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\QVTK2DView\QVTK2DView.vcxproj">
+      <Project>{1d58812f-4a52-4e10-99db-d5bef2930d2c}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
