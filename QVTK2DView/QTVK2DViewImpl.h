@@ -87,7 +87,7 @@ public:
      * @param position 点位置
      * @param color 颜色
      */
-    void addFont(QString name, Eigen::Vector2d position, const QString& id, QColor color = { 255, 0, 0 }) override;
+    void addFont(QString name, Eigen::Vector2d position, const QString& id, int fontSize, QColor color = { 255, 0, 0 }) override;
 
     /**
      * @brief 导出scene为GLTF格式
@@ -143,6 +143,11 @@ public:
      */
     vtkSmartPointer<vtkCamera> camera() const override;
 
+    /**
+     * @brief 过滤器
+     */
+    bool eventFilter(QObject* obj, QEvent* event) override;
+
 private:
     vtkSmartPointer<ZRPControlInteractor> _interactor = nullptr;
 
@@ -163,7 +168,9 @@ private:
 
     QMap<QString, Font> _fonts;
 
-    int _fontId = 0;
+    int _fontSize = 1;
+
+    constexpr static const int FONT_SCALE_STEP = 1;
 
     constexpr static const int LINE_WIDTH = 2;
 

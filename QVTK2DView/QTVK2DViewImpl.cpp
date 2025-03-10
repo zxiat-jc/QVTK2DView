@@ -44,6 +44,7 @@
 
 #include "dx_iface.h"
 
+#include <QKeyEvent>
 #include <QTimer>
 #include <QVector3D>
 class ZRPControlInteractor : public vtkInteractorStyleTrackballCamera {
@@ -138,7 +139,8 @@ QTVK2DViewImpl::QTVK2DViewImpl(QWidget* parent)
     this->_viewer->addPointCloud(_cloud, POINT_CLOUD);
     // 设置POINT_CLOUD点大小
     this->_viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 10, POINT_CLOUD);
-
+    // 事件过滤器
+    this->installEventFilter(this);
     // 添加中心坐标轴
     renderer->AddActor(_baseAxes = getBaseAxes());
     // 激活中心坐标
@@ -191,7 +193,7 @@ vtkSmartPointer<vtkAxesActor> QTVK2DViewImpl::getBaseAxes()
 void QTVK2DViewImpl::addPoint(QString name, Eigen::Vector2d point, QColor color)
 {
     _cloud->push_back(pcl::PointXYZRGB(point.x(), point.y(), 0, color.red(), color.green(), color.blue()));
-    this->addFont(name, point, name);
+    this->addFont(name, point, name, _fontSize);
 }
 
 void QTVK2DViewImpl::addVtkPoint(QString name, Eigen::Vector2d xy, QColor color)
@@ -218,7 +220,7 @@ void QTVK2DViewImpl::addVtkPoint(QString name, Eigen::Vector2d xy, QColor color)
     actor->SetPosition(xy.x(), xy.y(), 0);
     this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     _vtkActors[ShapeType::Point].push_back(actor);
-    this->addFont(name, xy, name);
+    this->addFont(name, xy, name, _fontSize);
 }
 
 void QTVK2DViewImpl::addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color)
@@ -274,18 +276,18 @@ void QTVK2DViewImpl::addTriangle(Eigen::Vector2d center, QColor color)
     actor->GetProperty()->SetRepresentationToWireframe(); // 设置为线框显示
     this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     this->_vtkActors[ShapeType::Triangle].push_back(actor);
-    this->addFont("triangle", center, "triangle");
     this->renderWindow()->Render();
 }
 
-void QTVK2DViewImpl::addFont(QString name, Eigen::Vector2d position, const QString& id, QColor color)
+void QTVK2DViewImpl::addFont(QString name, Eigen::Vector2d position, const QString& id, int fontSize, QColor color)
 {
     struct {
         double x = 0.0;
         double y = 0.0;
         double z = 0.0;
     } p { position.x(), position.y(), 0 };
-    this->_viewer->addText3D(name.toUtf8().data(), p, 500, color.redF(), color.greenF(), color.blueF(), id.toStdString());
+    this->_viewer->removeText3D(name.toUtf8().data());
+    this->_viewer->addText3D(name.toUtf8().data(), p, fontSize, color.redF(), color.greenF(), color.blueF(), id.toStdString());
     Font font;
     font.text = name;
     font.x = position.x();
@@ -494,4 +496,41 @@ void QTVK2DViewImpl::setCameraBaseOnCloud()
 vtkSmartPointer<vtkCamera> QTVK2DViewImpl::camera() const
 {
     return this->_camera;
+}
+
+bool QTVK2DViewImpl::eventFilter(QObject* obj, QEvent* event)
+{
+    // 监听键盘按键C
+    if (event->type() == QEvent::KeyPress) {
+        if (auto&& keyEvent = dynamic_cast<QKeyEvent*>(event)) {
+            // font down
+            if (keyEvent->key() == Qt::Key_Down && keyEvent->modifiers() == Qt::ControlModifier) {
+                qDebug() << "font down";
+                if (_fontSize - FONT_SCALE_STEP <= 0) {
+                    return false;
+                }
+                for (auto&& id : this->_fonts.keys()) {
+                    auto&& x = _fonts[id].x;
+                    auto&& y = _fonts[id].y;
+                    _fontSize -= FONT_SCALE_STEP;
+                    this->addFont(id, Eigen::Vector2d(x, y), id, _fontSize);
+                }
+                this->refresh();
+                return true;
+            }
+            // font up
+            else if (keyEvent->key() == Qt::Key_Up && keyEvent->modifiers() == Qt::ControlModifier) {
+                qDebug() << "font up";
+                _fontSize += FONT_SCALE_STEP;
+                for (auto&& id : this->_fonts.keys()) {
+                    auto&& x = _fonts[id].x;
+                    auto&& y = _fonts[id].y;
+                    this->addFont(id, Eigen::Vector2d(x, y), id, _fontSize);
+                }
+                this->refresh();
+                return true;
+            }
+        }
+    }
+    return false;
 }

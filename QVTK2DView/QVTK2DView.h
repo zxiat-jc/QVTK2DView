@@ -33,7 +33,7 @@ public:
 
     virtual void addTriangle(Eigen::Vector2d center, QColor color = { 0, 0, 0 }) = 0;
 
-    virtual void addFont(QString name, Eigen::Vector2d position, const QString& id, QColor color = { 0, 0, 0 }) = 0;
+    virtual void addFont(QString name, Eigen::Vector2d position, const QString& id, int fontSize, QColor color = { 255, 0, 0 }) = 0;
 
     virtual void addOval(Eigen::Vector2d center, double a, double b, double a_angle, QColor color = { 0, 0, 0 }) = 0;
 

@@ -250,6 +250,9 @@ ServiceFabricBackup/
 *.mdf
 *.ldf
 *.ndf
+include/
+lib/
+libd/
 
 # Business Intelligence projects
 *.rdl.data
