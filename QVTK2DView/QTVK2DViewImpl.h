@@ -168,11 +168,11 @@ private:
 
     QMap<QString, Font> _fonts;
 
-    int _fontSize = 1;
+    int _fontSize = 50;
 
-    constexpr static const int FONT_SCALE_STEP = 1;
+    constexpr static const int FONT_SCALE_STEP = 5;
 
-    constexpr static const int LINE_WIDTH = 2;
+    constexpr static const int LINE_WIDTH = 0.5;
 
     constexpr static const int CIRCLE_RADIUS = 2;
 

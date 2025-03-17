@@ -138,7 +138,7 @@ QTVK2DViewImpl::QTVK2DViewImpl(QWidget* parent)
 
     this->_viewer->addPointCloud(_cloud, POINT_CLOUD);
     // 设置POINT_CLOUD点大小
-    this->_viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 10, POINT_CLOUD);
+    this->_viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, POINT_CLOUD);
     // 事件过滤器
     this->installEventFilter(this);
     // 添加中心坐标轴
@@ -237,7 +237,7 @@ void QTVK2DViewImpl::addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor colo
     // 颜色
     actor->GetProperty()->SetColor(color.red(), color.green(), color.blue());
     // 透明度
-    actor->GetProperty()->SetOpacity(1);
+    actor->GetProperty()->SetOpacity(0.7);
     // 线宽
     actor->GetProperty()->SetLineWidth(LINE_WIDTH);
     // 设置Actor的属性以填充颜色
@@ -442,6 +442,7 @@ void QTVK2DViewImpl::clear()
     }
     this->_fonts.clear();
     this->_vtkActors.clear();
+    this->_fontSize = 50;
     this->refresh();
 }
 
@@ -509,10 +510,10 @@ bool QTVK2DViewImpl::eventFilter(QObject* obj, QEvent* event)
                 if (_fontSize - FONT_SCALE_STEP <= 0) {
                     return false;
                 }
+                _fontSize -= FONT_SCALE_STEP;
                 for (auto&& id : this->_fonts.keys()) {
                     auto&& x = _fonts[id].x;
                     auto&& y = _fonts[id].y;
-                    _fontSize -= FONT_SCALE_STEP;
                     this->addFont(id, Eigen::Vector2d(x, y), id, _fontSize);
                 }
                 this->refresh();
