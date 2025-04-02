@@ -43,7 +43,7 @@ public:
      * @brief 创建获取基本坐标系视图
      * @return vtkNew<vtkAxesActor>
      */
-    vtkSmartPointer<vtkAxesActor> getBaseAxes() override;
+    vtkSmartPointer<vtkAxesActor> getBaseAxes();
 
     /**
      * @brief 添加plc点
@@ -70,6 +70,14 @@ public:
     void addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color = { 0, 0, 0 }) override;
 
     /**
+     * @brief 添加双实线
+     * @param p1
+     * @param p2
+     * @param color
+     */
+    void addDoubleLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color = { 0, 0, 0 }) override;
+
+    /**
      * @brief 刷新
      */
     void refresh() override;
@@ -79,7 +87,7 @@ public:
      * @param center 三角中心
      * @param color 颜色
      */
-    void addTriangle(Eigen::Vector2d center, QColor color = { 0, 0, 0 }) override;
+    void addTriangle(QString name, Eigen::Vector2d center, QColor color = { 0, 0, 0 }) override;
 
     /**
      * @brief 添加font
@@ -87,7 +95,7 @@ public:
      * @param position 点位置
      * @param color 颜色
      */
-    void addFont(QString name, Eigen::Vector2d position, const QString& id, int fontSize, QColor color = { 255, 0, 0 }) override;
+    void addFont(QString name, Eigen::Vector2d position, const QString& id, QColor color = { 0, 0, 255 }) override;
 
     /**
      * @brief 导出scene为GLTF格式
@@ -138,15 +146,25 @@ public:
     void setCameraBaseOnCloud() override;
 
     /**
-     * @brief 获取相机
-     * @return
+     * @brief 根据vtk点设置相机视角
      */
-    vtkSmartPointer<vtkCamera> camera() const override;
+    void setCameraBaseOnVtkPoint() override;
 
     /**
      * @brief 过滤器
      */
-    bool eventFilter(QObject* obj, QEvent* event) override;
+    bool eventFilter(QObject* obj, QEvent* event);
+
+    /**
+     * @brief 更新三角形大小
+     */
+    void updateTriangle() override;
+
+    /**
+     * @brief 窗口高度与世界坐标系中的像素高度的转换
+     * @return
+     */
+    double windowHeight2Pixel(double height);
 
 private:
     vtkSmartPointer<ZRPControlInteractor> _interactor = nullptr;
@@ -168,7 +186,9 @@ private:
 
     QMap<QString, Font> _fonts;
 
-    int _fontSize = 50;
+    int _fontSize = 1000;
+
+    std::optional<Eigen::Vector2d> _center = std::nullopt;
 
     constexpr static const int FONT_SCALE_STEP = 5;
 

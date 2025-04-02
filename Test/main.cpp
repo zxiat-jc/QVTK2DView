@@ -22,10 +22,10 @@ int main(int argc, char* argv[])
     }
     RegisterPropertyPtr(GetQClassName(QVTK2DView), QVTK2DView::New());
     VTK_VIEWER->addLine(Eigen::Vector2d(0, 0), Eigen::Vector2d(100, 100), QColor(255, 0, 0));
-    VTK_VIEWER->addPoint("hello world", Eigen::Vector2d(100, 100), QColor(0, 0, 255));
-
-    VTK_VIEWER->refresh();
-    VTK_VIEWER->exportDXF("test.dxf");
+    VTK_VIEWER->addVtkPoint("hello world", Eigen::Vector2d(100, 100), QColor(0, 0, 255));
+    VTK_VIEWER->addVtkPoint("hello world1", Eigen::Vector2d(1000, 1000), QColor(0, 0, 255));
+    // VTK_VIEWER->addTriangle(Eigen::Vector2d(100, 100), QColor(255, 0, 0));
+    // VTK_VIEWER->refresh();
     VTK_VIEWER->show();
     return a.exec();
 }

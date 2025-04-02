@@ -23,21 +23,21 @@ public:
 
     virtual ~QVTK2DView() = 0;
 
-    virtual vtkSmartPointer<vtkAxesActor> getBaseAxes() = 0;
-
     virtual void addPoint(QString name, Eigen::Vector2d point, QColor color = { 0, 0, 0 }) = 0;
 
     virtual void addVtkPoint(QString name, Eigen::Vector2d point, QColor color = { 0, 0, 0 }) = 0;
 
     virtual void addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color = { 0, 0, 0 }) = 0;
 
-    virtual void addTriangle(Eigen::Vector2d center, QColor color = { 0, 0, 0 }) = 0;
+    virtual void addTriangle(QString name, Eigen::Vector2d center, QColor color = { 0, 0, 0 }) = 0;
 
-    virtual void addFont(QString name, Eigen::Vector2d position, const QString& id, int fontSize, QColor color = { 255, 0, 0 }) = 0;
+    virtual void addFont(QString name, Eigen::Vector2d position, const QString& id, QColor color = { 255, 0, 0 }) = 0;
 
     virtual void addOval(Eigen::Vector2d center, double a, double b, double a_angle, QColor color = { 0, 0, 0 }) = 0;
 
     virtual void addCircle(Eigen::Vector2d center, double radius, QColor color = { 0, 0, 0 }) = 0;
+
+    virtual void addDoubleLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color = { 0, 0, 0 }) = 0;
 
     virtual void amplifyOval(int sacle) = 0;
 
@@ -51,5 +51,7 @@ public:
 
     virtual void setCameraBaseOnCloud() = 0;
 
-    virtual vtkSmartPointer<vtkCamera> camera() const = 0;
+    virtual void setCameraBaseOnVtkPoint() = 0;
+
+    virtual void updateTriangle() = 0;
 };

@@ -27,6 +27,7 @@
 #include <vtkParametricFunctionSource.h>
 #include <vtkPlaneSource.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPolyDataMapper2D.h>
 #include <vtkProperty.h>
 #include <vtkProperty2d.h>
 #include <vtkRegularPolygonSource.h>
@@ -39,6 +40,7 @@
 #include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkTriangle.h>
 
 #include "libdxfrw.h"
 
@@ -139,6 +141,7 @@ QTVK2DViewImpl::QTVK2DViewImpl(QWidget* parent)
     this->_viewer->addPointCloud(_cloud, POINT_CLOUD);
     // 设置POINT_CLOUD点大小
     this->_viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, POINT_CLOUD);
+
     // 事件过滤器
     this->installEventFilter(this);
     // 添加中心坐标轴
@@ -193,7 +196,7 @@ vtkSmartPointer<vtkAxesActor> QTVK2DViewImpl::getBaseAxes()
 void QTVK2DViewImpl::addPoint(QString name, Eigen::Vector2d point, QColor color)
 {
     _cloud->push_back(pcl::PointXYZRGB(point.x(), point.y(), 0, color.red(), color.green(), color.blue()));
-    this->addFont(name, point, name, _fontSize);
+    this->addFont(name, point, name);
 }
 
 void QTVK2DViewImpl::addVtkPoint(QString name, Eigen::Vector2d xy, QColor color)
@@ -216,11 +219,10 @@ void QTVK2DViewImpl::addVtkPoint(QString name, Eigen::Vector2d xy, QColor color)
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(color.red(), color.green(), color.blue());
-    actor->GetProperty()->SetPointSize(20);
-    actor->SetPosition(xy.x(), xy.y(), 0);
+    actor->GetProperty()->SetPointSize(10);
     this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     _vtkActors[ShapeType::Point].push_back(actor);
-    this->addFont(name, xy, name, _fontSize);
+    this->addFont(name, xy, name);
 }
 
 void QTVK2DViewImpl::addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color)
@@ -237,13 +239,34 @@ void QTVK2DViewImpl::addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor colo
     // 颜色
     actor->GetProperty()->SetColor(color.red(), color.green(), color.blue());
     // 透明度
-    actor->GetProperty()->SetOpacity(0.7);
+    actor->GetProperty()->SetOpacity(1);
     // 线宽
     actor->GetProperty()->SetLineWidth(LINE_WIDTH);
     // 设置Actor的属性以填充颜色
     actor->GetProperty()->SetRepresentationToSurface();
     this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     this->_vtkActors[ShapeType::Line].push_back(actor);
+}
+
+void QTVK2DViewImpl::addDoubleLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor color)
+{
+    if (!this->_center.has_value()) {
+        qDebug() << "中心点未设置";
+        return;
+    }
+    int* winSize = this->renderWindow()->GetSize();
+    if (winSize[0] <= 0 || winSize[1] <= 0)
+        return;
+    int windowHeight = winSize[1];
+    double length = qMax(this->_center.value().x(), this->_center.value().y()) * 2;
+    double offset = length * 0.0000004;
+
+    Eigen::Vector2d p1Up(p1.x(), p1.y() + offset);
+    Eigen::Vector2d p2Up(p2.x(), p2.y() + offset);
+    this->addLine(p1Up, p2Up, color);
+    Eigen::Vector2d p1Down(p1.x(), p1.y() - offset);
+    Eigen::Vector2d p2Down(p2.x(), p2.y() - offset);
+    this->addLine(p1Down, p2Down, color);
 }
 
 void QTVK2DViewImpl::refresh()
@@ -255,12 +278,12 @@ void QTVK2DViewImpl::refresh()
     });
 }
 
-void QTVK2DViewImpl::addTriangle(Eigen::Vector2d center, QColor color)
+void QTVK2DViewImpl::addTriangle(QString name, Eigen::Vector2d center, QColor color)
 {
     // 创建等边三角形
     vtkSmartPointer<vtkRegularPolygonSource> triangleSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
     triangleSource->SetNumberOfSides(3);
-    triangleSource->SetRadius(200);
+    triangleSource->SetRadius(5);
     triangleSource->SetCenter(center.x(), center.y(), 0);
     // 创建Mapper和Actor
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -270,16 +293,17 @@ void QTVK2DViewImpl::addTriangle(Eigen::Vector2d center, QColor color)
     actor->SetMapper(mapper);
 
     // 设置三角形属性
-    actor->GetProperty()->SetOpacity(0.2); // 设置透明度
+    actor->GetProperty()->SetOpacity(1); // 设置透明度
     actor->GetProperty()->SetColor(color.red(), color.green(), color.blue());
     actor->GetProperty()->SetLineWidth(2);
-    actor->GetProperty()->SetRepresentationToWireframe(); // 设置为线框显示
+    actor->GetProperty()->SetRepresentationToSurface(); // 面填充
+    // actor->GetProperty()->SetRepresentationToWireframe(); // 设置为线框显示
     this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     this->_vtkActors[ShapeType::Triangle].push_back(actor);
-    this->renderWindow()->Render();
+    this->addFont(name, center, name);
 }
 
-void QTVK2DViewImpl::addFont(QString name, Eigen::Vector2d position, const QString& id, int fontSize, QColor color)
+void QTVK2DViewImpl::addFont(QString name, Eigen::Vector2d position, const QString& id, QColor color)
 {
     struct {
         double x = 0.0;
@@ -287,7 +311,7 @@ void QTVK2DViewImpl::addFont(QString name, Eigen::Vector2d position, const QStri
         double z = 0.0;
     } p { position.x(), position.y(), 0 };
     this->_viewer->removeText3D(name.toUtf8().data());
-    this->_viewer->addText3D(name.toUtf8().data(), p, fontSize, color.redF(), color.greenF(), color.blueF(), id.toStdString());
+    this->_viewer->addText3D(name.toUtf8().data(), p, this->_fontSize, color.redF(), color.greenF(), color.blueF(), id.toStdString());
     Font font;
     font.text = name;
     font.x = position.x();
@@ -494,9 +518,56 @@ void QTVK2DViewImpl::setCameraBaseOnCloud()
     this->renderWindow()->GetRenderers()->GetFirstRenderer()->ResetCameraClippingRange();
 }
 
-vtkSmartPointer<vtkCamera> QTVK2DViewImpl::camera() const
+void QTVK2DViewImpl::setCameraBaseOnVtkPoint()
 {
-    return this->_camera;
+    if (_vtkActors[Point].isEmpty()) {
+        return; // 无 Actor 直接返回
+    }
+
+    // 初始化包围盒范围
+    double xMin = VTK_DOUBLE_MAX, xMax = VTK_DOUBLE_MIN;
+    double yMin = VTK_DOUBLE_MAX, yMax = VTK_DOUBLE_MIN;
+
+    // 遍历所有 Actor 合并包围盒
+    auto function = [](double& xMin, double& xMax, double& yMin, double& yMax, QList<vtkProp3D*> props) {
+        for (auto&& prop : props) {
+            if (!prop) {
+                continue;
+            }
+            // 获取 Actor 的包围盒 [xmin, xmax, ymin, ymax, zmin, zmax]
+            double bounds[6];
+            prop->GetBounds(bounds);
+            // 更新全局范围
+            xMin = std::min(xMin, bounds[0]);
+            xMax = std::max(xMax, bounds[1]);
+            yMin = std::min(yMin, bounds[2]);
+            yMax = std::max(yMax, bounds[3]);
+        }
+    };
+    function(xMin, xMax, yMin, yMax, _vtkActors[Point]);
+    function(xMin, xMax, yMin, yMax, _vtkActors[Triangle]);
+
+    // 检查包围盒有效性
+    if (xMin > xMax || yMin > yMax) {
+        return; // 无效包围盒
+    }
+
+    // 计算场景中心点
+    const double centerX = (xMin + xMax) / 2.0;
+    const double centerY = (yMin + yMax) / 2.0;
+    this->_center = Eigen::Vector2d(centerX, centerY);
+
+    // 计算相机高度（基于最大跨度）
+    const double xSpan = xMax - xMin;
+    const double ySpan = yMax - yMin;
+    const double maxSpan = std::max(xSpan, ySpan);
+
+    // 设置相机参数
+    vtkCamera* camera = this->_camera;
+    camera->SetPosition(centerX, centerY, maxSpan); // 正上方视角
+    camera->SetFocalPoint(centerX, centerY, 0); // 聚焦场景中心
+    // 更新裁剪范围
+    this->renderWindow()->GetRenderers()->GetFirstRenderer()->ResetCameraClippingRange();
 }
 
 bool QTVK2DViewImpl::eventFilter(QObject* obj, QEvent* event)
@@ -514,7 +585,7 @@ bool QTVK2DViewImpl::eventFilter(QObject* obj, QEvent* event)
                 for (auto&& id : this->_fonts.keys()) {
                     auto&& x = _fonts[id].x;
                     auto&& y = _fonts[id].y;
-                    this->addFont(id, Eigen::Vector2d(x, y), id, _fontSize);
+                    this->addFont(id, Eigen::Vector2d(x, y), id);
                 }
                 this->refresh();
                 return true;
@@ -526,7 +597,7 @@ bool QTVK2DViewImpl::eventFilter(QObject* obj, QEvent* event)
                 for (auto&& id : this->_fonts.keys()) {
                     auto&& x = _fonts[id].x;
                     auto&& y = _fonts[id].y;
-                    this->addFont(id, Eigen::Vector2d(x, y), id, _fontSize);
+                    this->addFont(id, Eigen::Vector2d(x, y), id);
                 }
                 this->refresh();
                 return true;
@@ -534,4 +605,47 @@ bool QTVK2DViewImpl::eventFilter(QObject* obj, QEvent* event)
         }
     }
     return false;
+}
+
+void QTVK2DViewImpl::updateTriangle()
+{
+    int* winSize = this->renderWindow()->GetSize();
+    if (winSize[0] <= 0 || winSize[1] <= 0)
+        return;
+    // 三角形占窗口高度的3% 转为像素高度
+    double radius = this->windowHeight2Pixel(winSize[1] * 0.03);
+
+    for (auto&& prop : this->_vtkActors[Triangle]) {
+        auto&& actor = static_cast<vtkActor*>(prop);
+        auto&& mapper = actor->GetMapper();
+        vtkSmartPointer<vtkRegularPolygonSource> triangleSource = vtkRegularPolygonSource::SafeDownCast(mapper->GetInputConnection(0, 0)->GetProducer());
+        triangleSource->SetRadius(radius);
+        triangleSource->Update();
+    }
+    this->refresh();
+}
+
+double QTVK2DViewImpl::windowHeight2Pixel(double height)
+{
+    // 获取窗口尺寸
+    int* winSize = this->renderWindow()->GetSize();
+    if (winSize[0] <= 0 || winSize[1] <= 0)
+        return 0;
+    int windowHeight = winSize[1];
+    // 获取相机参数
+    double viewAngle = _camera->GetViewAngle(); // 垂直视场角（度）
+    double distance = _camera->GetDistance(); // 相机到焦点的距离
+
+    // 计算 窗口高度/像素高度 的比例系数
+    double pixelUnit;
+    if (_camera->GetParallelProjection()) {
+        // 正交投影
+        double parallelScale = _camera->GetParallelScale();
+        pixelUnit = windowHeight / (2.0 * parallelScale);
+    } else {
+        // 透视投影
+        double tanHalfAngle = tan(vtkMath::RadiansFromDegrees(viewAngle / 2.0));
+        pixelUnit = (windowHeight / 2.0) / (distance * tanHalfAngle);
+    }
+    return height / pixelUnit;
 }
