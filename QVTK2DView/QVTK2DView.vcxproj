@@ -99,6 +99,9 @@
     <Link>
       <AdditionalDependencies>$(VTK_LIB_DEBUG_1);$(VTK_LIB_DEBUG_2);$(PCL_LIB_DEBUG);%(AdditionalDependencies);libdxfrw.lib</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Qt5Debug|x64'">
     <Link>
