@@ -2,19 +2,15 @@
 
 #include "qvtk2dview_global.h"
 
-#include <QVTKOpenGLNativeWidget.h>
-#include <vtkActor.h>
-#include <vtkAxesActor.h>
-#include <vtkCamera.h>
+#include <QWidget>
 
-#include "QtUtils.h"
+#include <Eigen/Core>
 
 #ifndef VTK_VIEWER
 #define VTK_VIEWER []() { return GetAppPropertyPtr(GetQClassName(QVTK2DView), QVTK2DView); }()
 #endif
 
-class vtkOrientationMarkerWidget;
-class QVTK2DVIEW_EXPORT QVTK2DView : public QVTKOpenGLNativeWidget {
+class QVTK2DVIEW_EXPORT QVTK2DView : public QWidget {
     Q_OBJECT
 
 public:

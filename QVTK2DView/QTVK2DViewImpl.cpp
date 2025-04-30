@@ -1,8 +1,13 @@
 ﻿#include "QTVK2DViewImpl.h"
 
-#include <Eigen/Core>
+#include <QKeyEvent>
+#include <QTimer>
+#include <QVBoxLayout>
+
+#include <QVTKOpenGLNativeWidget.h>
 #include <pcl/common/centroid.h>
 #include <pcl/kdtree/kdtree_flann.h>
+#include <vtkActor.h>
 #include <vtkAppendPolyData.h>
 #include <vtkAxesActor.h>
 #include <vtkCamera.h>
@@ -46,9 +51,8 @@
 
 #include "dx_iface.h"
 
-#include <QKeyEvent>
-#include <QTimer>
-#include <QVector3D>
+#include "QtUtils.h"
+
 class ZRPControlInteractor : public vtkInteractorStyleTrackballCamera {
 private:
     bool _zoom = true;
@@ -108,7 +112,14 @@ vtkStandardNewMacro(ZRPControlInteractor);
 
 QTVK2DViewImpl::QTVK2DViewImpl(QWidget* parent)
 {
-    this->installEventFilter(this);
+    // 垂直布局
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    this->setLayout(layout);
+    this->_view = new QVTKOpenGLNativeWidget(this);
+    layout->addWidget(this->_view);
+
     vtkOutputWindow::SetGlobalWarningDisplay(0);
 
     auto renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -118,10 +129,10 @@ QTVK2DViewImpl::QTVK2DViewImpl(QWidget* parent)
     _interactor->SetDefaultRenderer(renderer);
 
     renderWindow->AddRenderer(renderer);
-    this->setRenderWindow(renderWindow);
+    this->_view->setRenderWindow(renderWindow);
     renderWindow->GetInteractor()->SetInteractorStyle(_interactor);
 
-    this->setEnableHiDPI(true);
+    this->_view->setEnableHiDPI(true);
     // 开启抗锯齿
     renderWindow->SetMultiSamples(4);
     renderer->SetUseFXAA(true);
@@ -158,7 +169,7 @@ QTVK2DViewImpl::QTVK2DViewImpl(QWidget* parent)
     widgetAxesActor->SetCylinderRadius(0.02);
     // 激活同步坐标小窗,
     this->_borderWidget->SetOrientationMarker(widgetAxesActor);
-    this->_borderWidget->SetInteractor(this->interactor());
+    this->_borderWidget->SetInteractor(this->_view->interactor());
     this->_borderWidget->SetEnabled(true);
     this->_borderWidget->InteractiveOn();
     _camera = renderer->GetActiveCamera();
@@ -220,7 +231,7 @@ void QTVK2DViewImpl::addVtkPoint(QString name, Eigen::Vector2d xy, QColor color)
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(color.red(), color.green(), color.blue());
     actor->GetProperty()->SetPointSize(10);
-    this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+    this->_view->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     _vtkActors[ShapeType::Point].push_back(actor);
     this->addFont(name, xy, name);
 }
@@ -244,7 +255,7 @@ void QTVK2DViewImpl::addLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColor colo
     actor->GetProperty()->SetLineWidth(LINE_WIDTH);
     // 设置Actor的属性以填充颜色
     actor->GetProperty()->SetRepresentationToSurface();
-    this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+    this->_view->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     this->_vtkActors[ShapeType::Line].push_back(actor);
 }
 
@@ -254,7 +265,7 @@ void QTVK2DViewImpl::addDoubleLine(Eigen::Vector2d p1, Eigen::Vector2d p2, QColo
         qDebug() << "中心点未设置";
         return;
     }
-    int* winSize = this->renderWindow()->GetSize();
+    int* winSize = this->_view->renderWindow()->GetSize();
     if (winSize[0] <= 0 || winSize[1] <= 0)
         return;
     int windowHeight = winSize[1];
@@ -273,8 +284,8 @@ void QTVK2DViewImpl::refresh()
 {
     QTimer::singleShot(100, [this]() {
         this->_viewer->updatePointCloud(_cloud, POINT_CLOUD);
-        this->renderWindow()->Modified();
-        this->renderWindow()->Render();
+        this->_view->renderWindow()->Modified();
+        this->_view->renderWindow()->Render();
     });
 }
 
@@ -298,7 +309,7 @@ void QTVK2DViewImpl::addTriangle(QString name, Eigen::Vector2d center, QColor co
     actor->GetProperty()->SetLineWidth(2);
     actor->GetProperty()->SetRepresentationToSurface(); // 面填充
     // actor->GetProperty()->SetRepresentationToWireframe(); // 设置为线框显示
-    this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+    this->_view->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
     this->_vtkActors[ShapeType::Triangle].push_back(actor);
     this->addFont(name, center, name);
 }
@@ -324,7 +335,7 @@ bool QTVK2DViewImpl::exportGLTF(QString path)
     vtkNew<vtkGLTFExporter> writer;
     writer->SetFileName(path.toStdString().c_str());
     writer->InlineDataOn();
-    writer->SetRenderWindow(this->renderWindow());
+    writer->SetRenderWindow(this->_view->renderWindow());
     writer->Write();
     return true;
 }
@@ -430,7 +441,7 @@ void QTVK2DViewImpl::addOval(Eigen::Vector2d center, double a, double b, double 
     property->SetRepresentationToWireframe();
     property->SetColor(0.0, 0.0, 0.0);
 
-    this->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+    this->_view->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 
     if (a == b) {
         this->_vtkActors[ShapeType::Circle].push_back(actor);
@@ -458,7 +469,7 @@ void QTVK2DViewImpl::clear()
     _cloud->clear();
     for (auto&& type : this->_vtkActors) {
         for (auto&& actor : type) {
-            this->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
+            this->_view->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
         }
     }
     for (auto&& id : _fonts.keys()) {
@@ -515,7 +526,7 @@ void QTVK2DViewImpl::setCameraBaseOnCloud()
 
     this->_camera->SetPosition(_cloud->points[pointIdxNKNSearch[0]].x, _cloud->points[pointIdxNKNSearch[0]].y, cameraZ);
     this->_camera->SetFocalPoint(_cloud->points[pointIdxNKNSearch[0]].x, _cloud->points[pointIdxNKNSearch[0]].y, _cloud->points[pointIdxNKNSearch[0]].z);
-    this->renderWindow()->GetRenderers()->GetFirstRenderer()->ResetCameraClippingRange();
+    this->_view->renderWindow()->GetRenderers()->GetFirstRenderer()->ResetCameraClippingRange();
 }
 
 void QTVK2DViewImpl::setCameraBaseOnVtkPoint()
@@ -567,7 +578,7 @@ void QTVK2DViewImpl::setCameraBaseOnVtkPoint()
     camera->SetPosition(centerX, centerY, maxSpan); // 正上方视角
     camera->SetFocalPoint(centerX, centerY, 0); // 聚焦场景中心
     // 更新裁剪范围
-    this->renderWindow()->GetRenderers()->GetFirstRenderer()->ResetCameraClippingRange();
+    this->_view->renderWindow()->GetRenderers()->GetFirstRenderer()->ResetCameraClippingRange();
 }
 
 bool QTVK2DViewImpl::eventFilter(QObject* obj, QEvent* event)
@@ -609,7 +620,7 @@ bool QTVK2DViewImpl::eventFilter(QObject* obj, QEvent* event)
 
 void QTVK2DViewImpl::updateTriangle()
 {
-    int* winSize = this->renderWindow()->GetSize();
+    int* winSize = this->_view->renderWindow()->GetSize();
     if (winSize[0] <= 0 || winSize[1] <= 0)
         return;
     // 三角形占窗口高度的3% 转为像素高度
@@ -628,7 +639,7 @@ void QTVK2DViewImpl::updateTriangle()
 double QTVK2DViewImpl::windowHeight2Pixel(double height)
 {
     // 获取窗口尺寸
-    int* winSize = this->renderWindow()->GetSize();
+    int* winSize = this->_view->renderWindow()->GetSize();
     if (winSize[0] <= 0 || winSize[1] <= 0)
         return 0;
     int windowHeight = winSize[1];

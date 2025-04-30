@@ -116,6 +116,9 @@
     <Link>
       <AdditionalDependencies>$(VTK_LIB_RELEASE_1);$(VTK_LIB_RELEASE_2);$(PCL_LIB_RELEASE);libdxfrw.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ClCompile>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>

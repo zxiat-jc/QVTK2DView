@@ -3,6 +3,7 @@
 #include "QVTK2DView.h"
 
 #include <vtkActor.h>
+#include <vtkAxesActor.h>
 #include <vtkSmartPointer.h>
 
 #include <pcl/common/common_headers.h>
@@ -16,6 +17,8 @@
 class vtkProp3D;
 class vtkOrientationMarkerWidget;
 class ZRPControlInteractor;
+class QVTKOpenGLNativeWidget;
+
 class QTVK2DViewImpl : public QVTK2DView {
     Q_OBJECT
 
@@ -167,6 +170,8 @@ public:
     double windowHeight2Pixel(double height);
 
 private:
+    QVTKOpenGLNativeWidget* _view = nullptr;
+
     vtkSmartPointer<ZRPControlInteractor> _interactor = nullptr;
 
     vtkSmartPointer<vtkOrientationMarkerWidget> _borderWidget = nullptr;
